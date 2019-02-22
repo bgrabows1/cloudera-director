@@ -1,0 +1,9 @@
+---
+- name: Create Cloudera Director instance
+  hosts: all
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - inventory/vars/director.yml
+  roles:
+    - director.setup

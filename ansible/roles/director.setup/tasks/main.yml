@@ -1,0 +1,41 @@
+---
+- name: Download JDK package
+  get_url:
+    url:      "{{ oracle_java_jdk_url }}"
+    dest:     /tmp/{{ oracle_java_jdk_url | basename }}
+    mode:     0644
+    headers:
+      Cookie: oraclelicense=accept-securebackup-cookie
+
+- name: Install JDK package
+  yum:
+    name:   /tmp/{{ oracle_java_jdk_url | basename }}
+    state:  present
+
+- name: Import Cloudera RPM repository GPG key
+  rpm_key:
+    key:    https://archive.cloudera.com/director/redhat/7/x86_64/director/RPM-GPG-KEY-cloudera
+    state:  present
+    
+- name: Import Cloudera RPM repository
+  yum_repository:
+    name:         cloudera-director
+    description:  Cloudera Director YUM repo
+    baseurl:      http://archive.cloudera.com/director/redhat/7/x86_64/director/2/
+
+- name: Install Cloudera Director
+  yum:
+    name:         cloudera-director-server
+    state:        present
+    update_cache: yes
+
+- name: Create Cloudera Director configuration
+  template:
+    src:  application.properties.j2
+    dest: /etc/cloudera-director-server/application.properties
+
+- name: Start Cloudera Director service
+  systemd:
+    name:     cloudera-director-server
+    state:    started
+    enabled:  yes
