@@ -73,7 +73,25 @@
     csr_path:         /etc/ssl/private/{{ director_public_dns }}.csr
     provider:         selfsigned
 
-- name: Start Cloudera Director service
+- name: Create a key store for the given certificate.
+  command: >
+    keytool -genkeypair -alias director -keyalg RSA \
+    -keystore /etc/ssl/private/{{ director_public_dns }}.jks \
+    -keysize 4096 -dname "CN={{ director_public_dns }},O=cloudera.com,ST=CA,C=US" \
+    -storepass {{ keystore_pass }} -keypass {{ keystore_pass }}
+  register: createkeystore
+  args:
+    creates: /etc/ssl/private/{{ director_public_dns }}.jks
+
+- name: Import SSL certificate to a given cacerts keystore
+  java_cert:
+    cert_path:      /etc/letsencrypt/live/{{ director_public_dns }}/{{ director_public_dns }}.crt
+    cert_alias:     "{{ director_public_dns }}"
+    keystore_path:  /etc/ssl/private/{{ director_public_dns }}.jks
+    keystore_pass:  "{{ keystore_pass }}"
+    state:          present
+    
+- name: Start Cloudera Director service.
   systemd:
     name:     cloudera-director-server
     state:    started
