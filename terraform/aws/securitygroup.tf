@@ -22,6 +22,14 @@ resource "aws_security_group" "public" {
     protocol    = "-1"
     self        = true
   }
+
+  ingress {
+    from_port   = 7189
+    to_port     = 7189
+    protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags {
     Name = "cloudera-${var.env_name}-public"
   }

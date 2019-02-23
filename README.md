@@ -15,5 +15,5 @@ terraform destroy -var 'aws_access_key=<aws access key>' -var 'aws_secret_key=<a
 
 To run Cloudera Director installation process.
 ~~~~
-ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws -i $(cd ../terraform/aws && terraform output director_public_ip), main.yml
+ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws -i $(cd ../terraform/aws && terraform output director_public_ip), -e "director_public_dns=$(cd ../terraform/aws && terraform output director_public_dns)" main.yml
 ~~~~
