@@ -33,16 +33,3 @@ resource "aws_route_table_association" "public" {
   subnet_id      = "${aws_subnet.public.id}"
   route_table_id = "${aws_route_table.public.id}"
 }
-
-resource "aws_eip" "director" {
-  vpc = "true"
-
-  tags {
-    Name = "cloudera-${var.env_name}"
-  }
-}
-
-resource "aws_eip_association" "director" {
-  instance_id   = "${aws_instance.director.id}"
-  allocation_id = "${aws_eip.director.id}"
-}

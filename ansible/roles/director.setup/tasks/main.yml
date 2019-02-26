@@ -36,7 +36,9 @@
 
 - name: Install Cloudera Director
   yum:
-    name:         cloudera-director-server
+    name:         
+      - cloudera-director-server
+      - openssl
     state:        present
     update_cache: yes
 
@@ -47,50 +49,57 @@
 
 - name: Create directory for SSL certificates
   file:
-    path:   /etc/ssl/private
+    path:   "{{ keystore_path }}/{{ director_public_dns }}"
     state:  directory
-    mode:   644
-
-- name: Ensure directory exists for local self-signed TLS certs.
-  file:
-    path:   /etc/letsencrypt/live/{{ director_public_dns }}
-    state:  directory
+    mode:   755
 
 - name: Generate an OpenSSL private key.
   openssl_privatekey:
-    path: /etc/letsencrypt/live/{{ director_public_dns }}/{{ director_public_dns }}.key
+    path: "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.key"
 
 - name: Generate an OpenSSL CSR.
   openssl_csr:
-    path:             /etc/ssl/private/{{ director_public_dns }}.csr
-    privatekey_path:  /etc/letsencrypt/live/{{ director_public_dns }}/{{ director_public_dns }}.key
+    path:             "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.csr"
+    privatekey_path:  "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.key"
     common_name:      "{{ director_public_dns }}"
 
 - name: Generate a Self Signed OpenSSL certificate.
   openssl_certificate:
-    path:             /etc/letsencrypt/live/{{ director_public_dns }}/{{ director_public_dns }}.crt
-    privatekey_path:  /etc/letsencrypt/live/{{ director_public_dns }}/{{ director_public_dns }}.key
-    csr_path:         /etc/ssl/private/{{ director_public_dns }}.csr
+    path:             "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.crt"
+    privatekey_path:  "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.key"
+    csr_path:         "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.csr"
     provider:         selfsigned
 
-- name: Create a key store for the given certificate.
+- name: Convert PEM to PKCS12
   command: >
-    keytool -genkeypair -alias director -keyalg RSA \
-    -keystore /etc/ssl/private/{{ director_public_dns }}.jks \
-    -keysize 4096 -dname "CN={{ director_public_dns }},O=cloudera.com,ST=CA,C=US" \
-    -storepass {{ keystore_pass }} -keypass {{ keystore_pass }}
-  register: createkeystore
+    openssl pkcs12 -export 
+    -out {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.p12 
+    -in {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.crt 
+    -inkey {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.key
+    -passout pass:{{ keystore_pass }}
+    -name "{{ director_public_dns }}"
   args:
-    creates: /etc/ssl/private/{{ director_public_dns }}.jks
+    creates: "{{ keystore_path }}{{ director_public_dns }}/{{ director_public_dns }}.p12"
 
 - name: Import SSL certificate to a given cacerts keystore
   java_cert:
-    cert_path:      /etc/letsencrypt/live/{{ director_public_dns }}/{{ director_public_dns }}.crt
-    cert_alias:     "{{ director_public_dns }}"
-    keystore_path:  /etc/ssl/private/{{ director_public_dns }}.jks
-    keystore_pass:  "{{ keystore_pass }}"
-    state:          present
-    
+    keystore_path:    "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.jks"
+    keystore_pass:    "{{ keystore_pass }}"
+    keystore_create:  yes
+    pkcs12_path:      "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.p12"
+    pkcs12_password:  "{{ keystore_pass }}"
+    pkcs12_alias:     "{{ director_public_dns }}"
+    state:            present
+
+- name: Import SSL certificate to a given cacerts keystore
+  java_cert:
+    keystore_path:    "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.jks"
+    keystore_pass:    "{{ keystore_pass }}"
+    keystore_create:  yes
+    cert_path:        "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.crt"
+    cert_alias:       "{{ director_public_dns }}"
+    state:            present 
+
 - name: Start Cloudera Director service.
   systemd:
     name:     cloudera-director-server

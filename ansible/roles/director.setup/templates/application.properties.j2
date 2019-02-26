@@ -263,11 +263,12 @@
 #
 
 # Fill out the store location to enable HTTPS
-server.ssl.key-store: /etc/ssl/private/{{ director_public_dns }}.jks
+server.ssl.key-store: {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.jks
 server.ssl.key-store-password: {{ keystore_pass }}
 # server.ssl.key-store-type:
 lp.remote.tlsEnabled: true
 lp.remote.hostAndPort: {{ director_public_dns }}:7189
+lp.remote.hostnameVerificationEnabled: false
 
 # Pick out a particular alias within the keystore (optional)
 # server.ssl.key-alias:
