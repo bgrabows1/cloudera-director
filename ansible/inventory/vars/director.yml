@@ -2,9 +2,11 @@ director_admin_username:                                director
 director_admin_password:                                ''
 cloudera_kerberos_user:                                 krbuser/admin
 cloudera_kerberos_password:                             ''
+cloudera_director_aws_region:                           eu-west-2
 cloudera_director_api_user:                             '{{ director_admin_username }}'
 cloudera_director_api_password:                         '{{ director_admin_password }}'
 cloudera_director_api_url:                              'https://{{ director_public_dns }}/api/v12/environments'
+cloudera_director_environment_name:                     dev
 cloudera_director_create_environment_endpoint:          '{{ cloudera_director_api_url }}'
 cloudera_director_terminate_environment_endpoint:       '{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/'
 cloudera_director_environment_region_name:              '{{ cloudera_director_aws_region }}'
