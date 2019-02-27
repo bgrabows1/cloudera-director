@@ -7,3 +7,4 @@
     - inventory/vars/director.yml
   roles:
     - director.setup
+    - director.kerberos

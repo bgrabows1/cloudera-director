@@ -1,0 +1,43 @@
+---
+- name: Load environment template
+  set_fact:
+   environment_template: "{{ lookup('template', 'environment_template.j2') }}"
+
+- name: List all environments
+  uri:
+    url:              "{{ cloudera_director_create_environment_endpoint }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+    status_code:
+      - 200
+      - 201
+  register: environments
+
+- name: Set environment non-existing flag to false
+  set_fact:
+    environment_non_existing_flag: False
+  when:
+    - cloudera_director_environment_name in environments.json
+
+- name: Set environment non-existing flag to true
+  set_fact:
+    environment_non_existing_flag: True
+  when:
+    - cloudera_director_environment_name not in environments.json
+
+- name: Create a new environment
+  uri:
+    url:              "{{ cloudera_director_create_environment_endpoint }}"
+    method:           POST
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+    body:             "{{ environment_template }}"
+    body_format:      json
+    status_code:
+      - 200
+      - 201
+  when:
+    - environment_non_existing_flag

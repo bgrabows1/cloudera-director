@@ -1,11 +1,13 @@
 - name: Install kerberos packages
   package:
-    name:   "{{ item }}"
+    name:   "{{ pkg }}"
     state:  present
   with_items:
     - krb5-libs
     - krb5-workstation
     - krb5-server
+  loop_control:
+    loop_var: pkg
 
 - name: Create Kerberos server configuration
   template:
@@ -42,18 +44,22 @@
   register: kdc_config
 
 - name: Initialise KDC
-  shell: kdb5_util create -s -P {{ cloudera_kerberos_password }}
+  command: >
+    kdb5_util create -s -P {{ cloudera_kerberos_password }}
   when: kdc_config.stat.exists == false
 
 - name: Create Kerberos admin user
-  shell: kadmin.local -q "addprinc -pw {{ cloudera_kerberos_password }} {{ cloudera_kerberos_user }}"
+  command: >
+    kadmin.local -q "addprinc -pw {{ cloudera_kerberos_password }} {{ cloudera_kerberos_user }}"
   register: create_admin
 
 - name: Start Kerberos services
   systemd:
-    name:     "{{ item }}"
+    name:     "{{ pkg }}"
     state:    started
     enabled:  yes
   with_items:
     - kadmin
     - krb5kdc
+  loop_control:
+    loop_var: pkg

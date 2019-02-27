@@ -1,0 +1,21 @@
+{
+  "name": "{{ cloudera_director_environment_name }}",
+  "provider": {
+    "type": "aws",
+    "config": {
+      "accessKeyId":                    "{{ aws_access_key }}",
+      "secretAccessKey":                "{{ aws_secret_key }}",
+      "associatePublicIpAddresses":     "true",
+      "importKeyPairIfMissing":         "false",
+      "rdsAssociatePublicIpAddresses":  "false",
+      "keyNamePrefix":                  "CLOUDERA-",
+      "region":                         "{{ cloudera_director_environment_region_name }}",
+      "rdsRegion":                      "{{ cloudera_director_environment_region_name }}"
+    }
+  },
+  "credentials": {
+    "username":   "{{ cloudera_director_env_user }}",
+    "privateKey": "{{ cloudera_director_env_private_key }}",
+    "port":       22
+  }
+}
