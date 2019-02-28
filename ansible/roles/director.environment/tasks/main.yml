@@ -37,6 +37,7 @@
     force_basic_auth: yes
     body:             "{{ environment_template }}"
     body_format:      json
+    validate_certs:   no
     status_code:
       - 200
       - 201
