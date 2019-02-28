@@ -1,0 +1,45 @@
+---
+- name: Load database server template
+  set_fact:
+    database_server_template: "{{ lookup('template', 'database_server_template.j2') }}"
+
+- name: List all database servers
+  uri:
+    url:              "{{ cloudera_director_create_database_server_endpoint }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+    validate_certs:   no
+    status_code:
+      - 200
+      - 201
+  register: database_servers
+
+- name: Set database server non-existing flag to false
+  set_fact:
+    database_server_non_existing_flag: False
+  when:
+    - aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name in database_servers.json
+
+- name: Set database server non-existing flag to true
+  set_fact:
+    database_server_non_existing_flag: True
+  when:
+    - aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name not in database_servers.json
+
+- name: Create a new database server
+  uri:
+    url:              "{{ cloudera_director_create_database_server_endpoint }}"
+    method:           POST
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+    body:             "{{ database_server_template }}"
+    body_format:      json
+    validate_certs:   no
+    status_code:
+      - 200
+      - 201
+  when:
+    - database_server_non_existing_flag

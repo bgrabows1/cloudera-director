@@ -1,0 +1,22 @@
+{
+  "name": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name }}",
+  "type": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_engine }}",
+  "username": "{{ cloudera_database_server_username }}",
+  "password": "{{ cloudera_database_server_password }}",
+  "config": {
+    "allocatedStorage":         "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_allocated_storage }}",
+    "vpcSecurityGroupIds":      "{{ aws_properties.global.cloudera_director_sg_id }}",
+    "multiAZ":                  "false",
+    "instanceClass":            "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_db_instance_class }}",
+    "type":                     "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_engine }}",
+    "storageEncrypted":         "false",
+    "adminUsername":            "{{ cloudera_database_server_username }}",
+    "skipFinalSnapshot":        "true",
+    "dbSubnetGroupName":        "{{ cloudera_director_db_subnet_group_name }}",
+    "instanceNamePrefix":       "director",
+    "publiclyAccessible":       "false",
+    "autoMinorVersionUpgrade":  "true",
+    "adminPassword":            "{{ cloudera_database_server_password }}"
+  },
+  "tags": {}
+}
