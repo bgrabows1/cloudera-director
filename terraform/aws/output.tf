@@ -25,3 +25,7 @@ output "director_subnet_id" {
 output "director_ami" {
   value = "${aws_instance.director.ami}"
 }
+
+output "director_db_subnet_group_name" {
+  value = "${aws_db_subnet_group.private.name}"
+}

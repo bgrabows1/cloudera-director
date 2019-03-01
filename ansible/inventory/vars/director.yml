@@ -14,7 +14,7 @@ cloudera_director_create_database_server_endpoint:      '{{ cloudera_director_ap
 cloudera_director_environment_region_name:              '{{ cloudera_director_aws_region }}'
 cloudera_director_env_user:                             centos
 
-cloudera_database_server_username:                      ''
+cloudera_database_server_username:                      dbuser
 cloudera_database_server_password:                      ''
 
 cluster_type:                                           basic

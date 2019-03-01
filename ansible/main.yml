@@ -10,3 +10,4 @@
     - director.setup
     - director.kerberos
     - director.environment
+    - director.database

@@ -1,4 +1,16 @@
 ---
+- name: Set Terraform variables
+  set_fact:
+    director_public_dns:                      "{{ jsonVar | json_query('modules[0].outputs.director_public_dns.value')}}"
+    director_private_dns:                     "{{ jsonVar | json_query('modules[0].outputs.director_private_dns.value')}}"
+    cloudera_director_sg_id:                  "{{ jsonVar | json_query('modules[0].outputs.director_sg_id.value')}}"
+    cloudera_director_subnet_id:              "{{ jsonVar | json_query('modules[0].outputs.director_subnet_id.value')}}"
+    cloudera_director_db_subnet_group_name:   "{{ jsonVar | json_query('modules[0].outputs.cloudera_director_db_subnet_group_name.value')}}"
+    cloudera_director_ami:                    "{{ jsonVar | json_query('modules[0].outputs.cloudera_director_ami.value')}}"
+    director_public_ip:                       "{{ jsonVar | json_query('modules[0].outputs.director_public_ip.value')}}"
+  vars:
+    jsonVar: "{{ lookup('file', '{{ terraform_tf_state_path }}') | from_json }}"
+
 - name: Download JDK package
   get_url:
     url:      "{{ oracle_java_jdk_url }}"
