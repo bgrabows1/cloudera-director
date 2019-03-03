@@ -1,0 +1,60 @@
+---
+- name: Load deployment template
+  set_fact:
+    deployment_template: "{{ lookup('template', 'deployment_template.j2') }}"
+
+- name: List all deployments
+  uri:
+    url: "{{ cloudera_director_create_deployment_endpoint }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+    status_code:
+     - 200
+     - 201
+  register: deployments
+
+- name: Set deployment non-existing flag to false
+  set_fact:
+    deployment_non_existing_flag: False
+  when:
+    - cloudera_director_deployment_name in deployments.json
+
+- name: Set deployment non-existing flag to true
+  set_fact:
+    deployment_non_existing_flag: True
+  when:
+    - cloudera_director_deployment_name not in deployments.json
+
+- name: Wait for database to come up
+  uri:
+    url:              "{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/databaseServers/{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name }}"
+    status_code:      200
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+  register: result
+  until: result.status == 200
+  retries: 120
+  delay: 5
+
+- name: Show template
+  debug:
+    msg: "{{ deployment_template }}"
+
+- name: Create a new deployment
+  uri:
+    url:              "{{ cloudera_director_create_deployment_endpoint }}"
+    method:           POST
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+    body:             "{{ deployment_template }}"
+    body_format:      json
+    status_code:
+      - 200
+      - 201
+  when:
+    - deployment_non_existing_flag

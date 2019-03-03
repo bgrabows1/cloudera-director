@@ -8,11 +8,15 @@ cloudera_director_api_password:                         '{{ director_admin_passw
 cloudera_director_port:                                 7189
 cloudera_director_api_url:                              'https://{{ director_public_dns }}:{{ cloudera_director_port }}/api/v12/environments'
 cloudera_director_environment_name:                     dev
+cloudera_director_deployment_name:                      dev-deployment
 cloudera_director_create_environment_endpoint:          '{{ cloudera_director_api_url }}'
 cloudera_director_terminate_environment_endpoint:       '{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/'
 cloudera_director_create_database_server_endpoint:      '{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/databaseServers'
 cloudera_director_environment_region_name:              '{{ cloudera_director_aws_region }}'
 cloudera_director_env_user:                             centos
+cloudera_director_create_deployment_endpoint:           '{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/deployments'
+cloudera_director_deployment_status_endpoint:           '{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/deployments/{{ cloudera_director_deployment_name }}/status'
+
 
 cloudera_database_server_username:                      dbuser
 cloudera_database_server_password:                      ''

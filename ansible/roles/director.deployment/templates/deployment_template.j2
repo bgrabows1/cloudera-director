@@ -1,0 +1,80 @@
+{
+
+  "configs": {
+    "CLOUDERA_MANAGER": {
+      "KDC_TYPE":               "MIT KDC",
+      "KDC_HOST":               "{{ director_public_dns }}",
+      "KRB_MANAGE_KRB5_CONF":   "true",
+      "KRB_ENC_TYPES":          "rc4-hmac des3-hmac-sha1 arcfour-hmac des-hmac-sha1 des-cbc-md5 des-cbc-crc",
+      "SECURITY_REALM":         "{{ director_public_dns| upper }}"
+    }
+  },
+  "csds":                   [],
+  "enableEnterpriseTrial":  false,
+  "unlimitedJce":           true,
+  "tlsEnabled":             true,
+  "krbAdminUsername":       "{{ cloudera_kerberos_user }}@{{ director_public_dns | upper }}.{{ env_domain | upper }}",
+  "krbAdminPassword":       "{{ cloudera_kerberos_password }}",
+  "externalAccounts":       {},
+  "externalDatabaseTemplates": {
+    "ACTIVITYMONITOR": {
+      "name":               "cmamtemplate",
+      "databaseServerName": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name  }}",
+      "databaseNamePrefix": "am"
+    },
+    "NAVIGATORMETASERVER": {
+      "name":               "cmnavmetatemplate",
+      "databaseServerName": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name  }}",
+      "databaseNamePrefix": "navmeta"
+    },
+    "REPORTSMANAGER": {
+      "name":               "cmrmtemplate",
+      "databaseServerName": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name  }}",
+      "databaseNamePrefix": "rm"
+    },
+    "NAVIGATOR": {
+      "name":               "cmnavtemplate",
+      "databaseServerName": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name  }}",
+      "databaseNamePrefix": "nav"
+    },
+    "CLOUDERA_MANAGER": {
+      "name":               "cmtemplate",
+      "databaseServerName": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name  }}",
+      "databaseNamePrefix": "scm"
+    }
+  },
+  "externalDatabases": {},
+  "javaInstallationStrategy": "AUTO",
+  "managerVirtualInstance": {
+    "id": "{{ 99999999 | random | to_uuid }}",
+    "template": {
+      "bootstrapScripts": [],
+      "config": {
+        "ebsOptimized":         "false",
+        "ebsVolumeCount":       "0",
+        "ebsVolumeSizeGiB":     "500",
+        "ebsVolumeType":        "st1",
+        "enableEbsEncryption":  "false",
+        "instanceNamePrefix":   "cloudera-manager",
+        "rootVolumeSizeGB":     "50",
+        "rootVolumeType":       "gp2",
+        "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}",
+        "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+        "useSpotInstances":     "false"
+      },
+      "image":                    "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_manager_ami_name }}",
+      "name":                     "cm-template",
+      "normalizeInstance":        true,
+      "rackId":                   "/default",
+      "sshHostKeyRetrievalType":  "NONE",
+      "tags":                     {},
+      "type":                     "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_manager_ec2_type }}"
+    }
+  },
+  "name":                       "{{ cloudera_director_deployment_name }}",
+  "password":                   "{{ cloudera_director_api_password }}",
+  "postCreateScripts":          [],
+  "repository":                 "https://archive.cloudera.com/cm5/redhat/7/x86_64/cm/5.15.1",
+  "tlsConfigurationProperties": {},
+  "username":                   "{{ cloudera_director_api_user }}"
+}
