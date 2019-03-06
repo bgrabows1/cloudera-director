@@ -2,26 +2,40 @@
 
 ## How to create Cloudera Director instance in AWS using Terraform.
 
-~~~~ 
+~~~bash
 cd terraform/aws 
 terraform init
 terraform apply -var 'aws_access_key=<aws access key>' -var 'aws_secret_key=<aws secret key>'
-~~~~ 
+~~~
 
 To destroy AWS objects created above.
-~~~~ 
+~~~bash
 terraform destroy -var 'aws_access_key=<aws access key>' -var 'aws_secret_key=<aws secret key>'
-~~~~
+~~~
 
 To run Cloudera Director installation process.
-~~~~
+~~~bash
 ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws \ 
 -i $(cd ../terraform/aws && terraform output director_public_ip),  \
 -e "cloudera_director_env_private_key=$(sed -E 's/$/\\\\n/g' ~/.ssh/id_rsa.cloudera.aws)" \
 -e "aws_access_key=<your aws access key>" \
 -e "aws_secret_key=<your aws secret key" \
 --vault-password-file=~/.ansible-vault-key main.yml
-~~~~
+~~~
+
+To destroy AWS objects created above.
+~~~bash 
+terraform destroy -var 'aws_access_key=<aws access key>' -var 'aws_secret_key=<aws secret key>'
+~~~
+
+~~~bash
+ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws \ 
+-i $(cd ../terraform/aws && terraform output director_public_ip),  \
+-e "cloudera_director_env_private_key=$(sed -E 's/$/\\\\n/g' ~/.ssh/id_rsa.cloudera.aws)" \
+-e "aws_access_key=<your aws access key>" \
+-e "aws_secret_key=<your aws secret key" \
+--vault-password-file=~/.ansible-vault-key director-destroy.yml
+~~~
 
 Please remember to encrypt you secret data stored in vault.yml 
 file and pass correct password to Ansible via --vault-password-file or --ask-vault-pass
