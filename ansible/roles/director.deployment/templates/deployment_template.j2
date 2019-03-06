@@ -1,19 +1,18 @@
 {
-
   "configs": {
     "CLOUDERA_MANAGER": {
       "KDC_TYPE":               "MIT KDC",
       "KDC_HOST":               "{{ director_public_dns }}",
       "KRB_MANAGE_KRB5_CONF":   "true",
       "KRB_ENC_TYPES":          "rc4-hmac des3-hmac-sha1 arcfour-hmac des-hmac-sha1 des-cbc-md5 des-cbc-crc",
-      "SECURITY_REALM":         "{{ director_public_dns| upper }}"
+      "SECURITY_REALM":         "{{ director_public_dns | upper }}"
     }
   },
   "csds":                   [],
   "enableEnterpriseTrial":  false,
   "unlimitedJce":           true,
   "tlsEnabled":             true,
-  "krbAdminUsername":       "{{ cloudera_kerberos_user }}@{{ director_public_dns | upper }}.{{ env_domain | upper }}",
+  "krbAdminUsername":       "{{ cloudera_kerberos_user }}@{{ director_public_dns | upper }}",
   "krbAdminPassword":       "{{ cloudera_kerberos_password }}",
   "externalAccounts":       {},
   "externalDatabaseTemplates": {

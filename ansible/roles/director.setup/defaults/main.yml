@@ -2,4 +2,3 @@ oracle_java_jdk_url:            https://download.oracle.com/otn-pub/java/jdk/8u2
 pyopenssl_url:                  https://cbs.centos.org/kojifiles/packages/pyOpenSSL/16.2.0/3.el7/noarch/python2-pyOpenSSL-16.2.0-3.el7.noarch.rpm
 keystore_pass:                  cloudera
 keystore_path:                  /etc/cloudera-director-server/certs
-terraform_tf_state_path:        '{{ playbook_dir }}/../terraform/aws/terraform.tfstate'

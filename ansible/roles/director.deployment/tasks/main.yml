@@ -10,6 +10,7 @@
     user:             "{{ cloudera_director_api_user }}"
     password:         "{{ cloudera_director_api_password }}"
     force_basic_auth: yes
+    validate_certs:   no
     status_code:
      - 200
      - 201
@@ -34,6 +35,7 @@
     method:           GET
     user:             "{{ cloudera_director_api_user }}"
     password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
     force_basic_auth: yes
   register: result
   until: result.status == 200
@@ -44,12 +46,17 @@
   debug:
     msg: "{{ deployment_template }}"
 
+- name: Show ami
+  debug:
+    msg: "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_manager_ami_name }}"
+
 - name: Create a new deployment
   uri:
     url:              "{{ cloudera_director_create_deployment_endpoint }}"
     method:           POST
     user:             "{{ cloudera_director_api_user }}"
     password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
     force_basic_auth: yes
     body:             "{{ deployment_template }}"
     body_format:      json

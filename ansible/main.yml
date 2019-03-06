@@ -11,3 +11,4 @@
     - director.kerberos
     - director.environment
     - director.database
+    - director.deployment

@@ -1,0 +1,10 @@
+---
+- name: Terminate Cloudera Director service
+  hosts: localhost
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - inventory/vars/director.yml
+    - inventory/vars/vault.yml
+  roles:
+    - director.destroy

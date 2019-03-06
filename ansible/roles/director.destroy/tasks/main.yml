@@ -1,0 +1,218 @@
+---
+- name: Set Terraform variables
+  set_fact:
+    director_public_dns:                      "{{ jsonVar | json_query('modules[0].outputs.director_public_dns.value')}}"
+    cloudera_director_ami:                    "{{ jsonVar | json_query('modules[0].outputs.director_ami.value')}}"
+    cloudera_director_subnet_id:              "{{ jsonVar | json_query('modules[0].outputs.director_subnet_id.value')}}"
+    cloudera_director_sg_id:                  "{{ jsonVar | json_query('modules[0].outputs.director_sg_id.value')}}"
+    cloudera_director_subnet_id:              "{{ jsonVar | json_query('modules[0].outputs.director_subnet_id.value')}}"
+    cloudera_director_db_subnet_group_name:   "{{ jsonVar | json_query('modules[0].outputs.cloudera_director_db_subnet_group_name.value')}}"
+  vars:
+    jsonVar: "{{ lookup('file', '{{ terraform_tf_state_path }}') | from_json }}"
+
+- name: List all clusters
+  uri:
+    url:              "{{ cloudera_director_create_cluster_endpoint }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 200
+      - 201
+      - 404
+  register: clusters
+
+- name: Set cluster non-existing flag to false
+  set_fact:
+    cluster_non_existing_flag: False
+  when:
+    - cloudera_director_cluster_name in clusters.json
+
+- name: Set cluster non-existing flag to true
+  set_fact:
+    cluster_non_existing_flag: True
+  when:
+    - cloudera_director_cluster_name not in clusters.json
+
+- name: Terminate cluster
+  uri:
+    url:              "{{ cloudera_director_terminate_cluster_endpoint }}"
+    method:           DELETE
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 204
+  when:
+    - not cluster_non_existing_flag
+
+- name: Wait for cluster to terminated
+  uri:
+    url:              "{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/deployments/{{ cloudera_director_deployment_name }}/clusters/{{ cloudera_director_cluster_name }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 200
+      - 404
+  when:
+    - not cluster_non_existing_flag
+  register: result
+  until: result.status == 404
+  retries: 100
+  delay: 5
+
+- name: List all deployments
+  uri:
+    url: "{{ cloudera_director_create_deployment_endpoint }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+     - 200
+     - 201
+  register: deployments
+
+- name: Set deployment non-existing flag to false
+  set_fact:
+    deployment_non_existing_flag: False
+  when:
+    - cloudera_director_deployment_name in deployments.json
+
+- name: Set deployment non-existing flag to true
+  set_fact:
+    deployment_non_existing_flag: True
+  when:
+    - cloudera_director_deployment_name not in deployments.json
+
+- name: Terminate deployment
+  uri:
+    url:              "{{ cloudera_director_terminate_deployment_endpoint }}"
+    method:           DELETE
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 204
+  when:
+    - not deployment_non_existing_flag
+
+- name: Wait for cloudera manager to terminated
+  uri:
+    url:              "{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/deployments/{{ cloudera_director_deployment_name }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 200
+      - 404
+  when:
+    - not deployment_non_existing_flag
+  register: result
+  until: result.status == 404
+  retries: 100
+  delay: 5
+
+- name: List all database servers
+  uri:
+    url:              "{{ cloudera_director_create_database_server_endpoint }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 200
+      - 201
+  register: database_servers
+
+- name: Set database server non-existing flag to false
+  set_fact:
+    database_server_non_existing_flag: False
+  when:
+    - aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name in database_servers.json
+
+- name: Set database server non-existing flag to true
+  set_fact:
+    database_server_non_existing_flag: True
+  when:
+    - aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name not in database_servers.json
+
+- name: Terminate database server
+  uri:
+    url:              "{{ cloudera_director_terminate_database_server_endpoint }}"
+    method:           DELETE
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 204
+  when:
+    - not database_server_non_existing_flag
+
+- name: Wait for database to be deleted
+  uri:
+    url:              "{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/databaseServers/{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name }}"
+    status_code:
+      - 200
+      - 404
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+  when:
+    - not database_server_non_existing_flag
+  register: result
+  until: result.status == 404
+  retries: 50
+  delay: 5
+  
+- name: List all environments
+  uri:
+    url:              "{{ cloudera_director_create_environment_endpoint }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 200
+      - 201
+  register: environments
+
+- name: Set environment non-existing flag to false
+  set_fact:
+    environment_non_existing_flag: False
+  when:
+    - cloudera_director_environment_name in environments.json
+
+- name: Set environment non-existing flag to true
+  set_fact:
+    environment_non_existing_flag: True
+  when:
+    - cloudera_director_environment_name not in environments.json
+
+- name: Terminate environment
+  uri:
+    url:              "{{ cloudera_director_terminate_environment_endpoint }}"
+    method:           DELETE
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
+    force_basic_auth: yes
+    status_code:
+      - 204
+  when:
+    - not environment_non_existing_flag
