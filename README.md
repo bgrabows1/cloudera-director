@@ -24,10 +24,6 @@ ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws \
 ~~~
 
 To destroy AWS objects created above.
-~~~bash 
-terraform destroy -var 'aws_access_key=<aws access key>' -var 'aws_secret_key=<aws secret key>'
-~~~
-
 ~~~bash
 ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws \ 
 -i $(cd ../terraform/aws && terraform output director_public_ip),  \
@@ -35,6 +31,10 @@ ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws \
 -e "aws_access_key=<your aws access key>" \
 -e "aws_secret_key=<your aws secret key" \
 --vault-password-file=~/.ansible-vault-key director-destroy.yml
+~~~
+
+~~~bash 
+terraform destroy -var 'aws_access_key=<aws access key>' -var 'aws_secret_key=<aws secret key>'
 ~~~
 
 Please remember to encrypt you secret data stored in vault.yml 
