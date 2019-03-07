@@ -1,0 +1,57 @@
+---
+- name: Load cluster template
+  set_fact:
+    cluster_template: "{{ lookup('template',  cloudera_director_cluster_config_template) }}"
+
+- name: List all clusters
+  uri:
+    url:              "{{ cloudera_director_create_cluster_endpoint }}"
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+    status_code:
+      - 200
+      - 201
+      - 404
+  register: clusters
+
+- name: Set cluster non-existing flag to false
+  set_fact:
+    cluster_non_existing_flag: False
+  when:
+    - cloudera_director_cluster_name in clusters.json
+
+- name: Set cluster non-existing flag to true
+  set_fact:
+    cluster_non_existing_flag: True
+  when:
+    - cloudera_director_cluster_name not in clusters.json
+
+- name: Wait for Cloudera Manager to come up
+  uri:
+    url:              "{{ cloudera_director_api_url }}/{{ cloudera_director_environment_name }}/deployments/{{ cloudera_director_deployment_name }}"
+    status_code:      200
+    method:           GET
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+  register: result
+  until: result.status == 200
+  retries: 100
+  delay: 5
+
+- name: Create a new cluster
+  uri:
+    url:              "{{ cloudera_director_create_cluster_endpoint }}"
+    method:           POST
+    user:             "{{ cloudera_director_api_user }}"
+    password:         "{{ cloudera_director_api_password }}"
+    force_basic_auth: yes
+    body:             "{{ cluster_template }}"
+    body_format:      json
+    status_code:
+      - 200
+      - 201
+  when:
+    - cluster_non_existing_flag
