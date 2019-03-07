@@ -29,6 +29,9 @@ terraform_tf_state_path:                                '{{ playbook_dir }}/../t
 
 cluster_type:                                           basic
 
+cloudera_director_cluster_name:                         '{{ cloudera_director_environment_name }}-cluster'
+cloudera_director_cluster_config_template:              'cluster_{{ cluster_type }}_template.j2'
+
 aws_properties:
   global:
     cloudera_director_sg_id:                            '{{ cloudera_director_sg_id }}'

@@ -9,6 +9,7 @@
     method:           GET
     user:             "{{ cloudera_director_api_user }}"
     password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
     force_basic_auth: yes
     status_code:
       - 200
@@ -35,6 +36,7 @@
     method:           GET
     user:             "{{ cloudera_director_api_user }}"
     password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
     force_basic_auth: yes
   register: result
   until: result.status == 200
@@ -47,6 +49,7 @@
     method:           POST
     user:             "{{ cloudera_director_api_user }}"
     password:         "{{ cloudera_director_api_password }}"
+    validate_certs:   no
     force_basic_auth: yes
     body:             "{{ cluster_template }}"
     body_format:      json

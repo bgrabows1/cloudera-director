@@ -12,3 +12,4 @@
     - director.environment
     - director.database
     - director.deployment
+    - director.cluster
