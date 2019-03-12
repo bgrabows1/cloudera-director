@@ -1,7 +1,3 @@
-director_admin_username:                                director
-director_admin_password:                                ''
-cloudera_kerberos_user:                                 krbuser/admin
-cloudera_kerberos_password:                             ''
 cloudera_director_aws_region:                           eu-west-2
 cloudera_director_api_user:                             '{{ director_admin_username }}'
 cloudera_director_api_password:                         '{{ director_admin_password }}'
@@ -21,9 +17,6 @@ cloudera_director_terminate_database_server_endpoint:   '{{ cloudera_director_ap
 
 cloudera_director_environment_region_name:              '{{ cloudera_director_aws_region }}'
 cloudera_director_env_user:                             centos
-
-cloudera_database_server_username:                      dbuser
-cloudera_database_server_password:                      ''
 
 terraform_tf_state_path:                                '{{ playbook_dir }}/../terraform/aws/terraform.tfstate'
 

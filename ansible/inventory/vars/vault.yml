@@ -1,1 +1,7 @@
-cloudera_director_env_private_key: ''
+---
+director_admin_username: admin
+director_admin_password: ''
+cloudera_database_server_username: director
+cloudera_database_server_password: ''
+cloudera_kerberos_user: cdh/admin
+cloudera_kerberos_password: ''
