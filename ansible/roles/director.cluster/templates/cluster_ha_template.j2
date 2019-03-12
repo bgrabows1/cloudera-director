@@ -1,0 +1,338 @@
+{
+  "name": "{{ cloudera_director_cluster_name }}",
+  "productVersions": {
+    "CDH": "5"
+  },
+  "services": [
+    "HDFS",
+    "HIVE",
+    "HUE",
+    "OOZIE",
+    "YARN",
+    "ZOOKEEPER",
+    "SPARK_ON_YARN"
+  ],
+  "servicesConfigs": {
+    "HDFS": {
+      "dfs_ha_fencing_methods":               "shell(true)",
+      "dfs_encrypt_data_transfer_algorithm":  "AES/CTR/NoPadding",
+      "hadoop_security_authentication":       "kerberos",
+      "hadoop_security_authorization":        "true"
+    },
+    "OOZIE": {
+      "oozie_load_balancer":            "{{ cloudera_director_private_ip }}",
+      "oozie_load_balancer_http_port":  11000
+    },
+    "HUE": {
+      "hue_service_safety_valve": "[desktop]\nallowed_hosts=hue.{{ env_name }}.{{ env_domain }}\nuse_x_forwarded_host=true\nbehind_reverse_proxy=true\nhue_load_balancer=https://hue.{{ env_name }}.{{ env_domain }}"
+    },
+    "ZOOKEEPER": {
+      "enableSecurity": "true"
+    }
+  },
+  "virtualInstanceGroups": {
+    "hdfsmasters-core": {
+      "name": "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_core.cloudera_cluster_template_name }}",
+      "virtualInstances":
+       [
+        {% for x in range(aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_core.cloudera_cluster_nodes_number) %}
+          {
+            "id": "{{ ((x + 10) | pow(3)) | to_uuid }}",
+            "template": {
+              "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_core.cloudera_cluster_template_name }}",
+              "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_core.cloudera_cluster_ec2_type }}",
+              "image":            "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_core.cloudera_cluster_ami_name }}",
+              "rackId":           "/default",
+              "bootstrapScripts": [],
+              "config": {
+                "ebsVolumeCount":       "0",
+                "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+                "ebsOptimized":         "false",
+                "enableEbsEncryption":  "false",
+                "rootVolumeType":       "gp2",
+                "instanceNamePrefix":   "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_core.cloudera_cluster_template_name }}",
+                "ebsVolumeSizeGiB":     "500",
+                "rootVolumeSizeGB":     "50",
+                "useSpotInstances":     "false",
+                "ebsVolumeType":        "st1",
+                "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}"
+              },
+              "tags": {},
+              "normalizeInstance":        true,
+              "sshHostKeyRetrievalType":  "NONE"
+            }
+          }
+          {% if not loop.last %},{% endif %}
+        {% endfor %}
+        ],
+      "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_core.cloudera_cluster_nodes_number }},
+      "serviceTypeToRoleTypes": {
+        "HDFS": [
+          "NAMENODE",
+          "FAILOVERCONTROLLER",
+          "JOURNALNODE"
+        ]
+      },
+      "roleTypesConfigs": {
+        "HDFS": {
+          "NAMENODE": {
+            "dfs_federation_namenode_nameservice":  "hanameservice",
+            "autofailover_enabled":                 true,
+            "dfs_namenode_quorum_journal_name":     "hanameservice"
+          }
+        }
+      }
+    },
+    "hdfsmasters-httpfs": {
+      "name": "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_httpfs.cloudera_cluster_template_name }}",
+      "virtualInstances":
+       [
+        {% for x in range(aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_httpfs.cloudera_cluster_nodes_number) %}
+          {
+            "id": "{{ ((x + 20) | pow(3)) | to_uuid }}",
+            "template": {
+              "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_httpfs.cloudera_cluster_template_name }}",
+              "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_httpfs.cloudera_cluster_ec2_type }}",
+              "image":            "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_httpfs.cloudera_cluster_ami_name }}",
+              "rackId":           "/default",
+              "bootstrapScripts": [],
+              "config": {
+                "ebsVolumeCount":       "0",
+                "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+                "ebsOptimized":         "false",
+                "enableEbsEncryption":  "false",
+                "rootVolumeType":       "gp2",
+                "instanceNamePrefix":   "{{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_httpfs.cloudera_cluster_template_name }}",
+                "ebsVolumeSizeGiB":     "500",
+                "rootVolumeSizeGB":     "50",
+                "useSpotInstances":     "false",
+                "ebsVolumeType":        "st1",
+                "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}"
+              },
+              "tags":                     {},
+              "normalizeInstance":        true,
+              "sshHostKeyRetrievalType":  "NONE"
+            }
+          }
+          {% if not loop.last %},{% endif %}
+        {% endfor %}
+        ],
+      "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.hdfsmasternode_httpfs.cloudera_cluster_nodes_number }},
+      "serviceTypeToRoleTypes": {
+        "HDFS": [
+          "HTTPFS",
+          "JOURNALNODE"
+        ]
+      },
+      "roleTypesConfigs": {}
+    },
+    "masters-2": {
+      "name": "{{ aws_properties.cluster_types[cluster_type].cluster.masternode_2.cloudera_cluster_template_name }}",
+      "virtualInstances":
+       [
+        {% for x in range(aws_properties.cluster_types[cluster_type].cluster.masternode_2.cloudera_cluster_nodes_number) %}
+          {
+            "id": "{{ ((x + 30) | pow(3)) | to_uuid }}",
+            "template": {
+              "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.masternode_2.cloudera_cluster_template_name }}",
+              "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.masternode_2.cloudera_cluster_ec2_type }}",
+              "image":            "{{ aws_properties.cluster_types[cluster_type].cluster.masternode_2.cloudera_cluster_ami_name }}",
+              "rackId":           "/default",
+              "bootstrapScripts": [],
+              "config": {
+                "ebsVolumeCount":       "0",
+                "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+                "ebsOptimized":         "false",
+                "enableEbsEncryption":  "false",
+                "rootVolumeType":       "gp2",
+                "instanceNamePrefix":   "{{ aws_properties.cluster_types[cluster_type].cluster.masternode_2.cloudera_cluster_template_name }}",
+                "ebsVolumeSizeGiB":     "500",
+                "rootVolumeSizeGB":     "50",
+                "useSpotInstances":     "false",
+                "ebsVolumeType":        "st1",
+                "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}"
+              },
+              "tags":                     {},
+              "normalizeInstance":        true,
+              "sshHostKeyRetrievalType":  "NONE"
+            }
+          }
+          {% if not loop.last %},{% endif %}
+        {% endfor %}
+        ],
+      "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.masternode_2.cloudera_cluster_nodes_number }},
+      "serviceTypeToRoleTypes": {
+        "HIVE": [
+          "HIVEMETASTORE",
+          "HIVESERVER2"
+        ],
+        "OOZIE": [
+          "OOZIE_SERVER"
+        ],
+        "HUE": [
+          "HUE_SERVER"
+        ],
+        "ZOOKEEPER": [
+          "SERVER"
+        ],
+        "YARN": [
+          "RESOURCEMANAGER"
+        ],
+        "SPARK_ON_YARN": [
+          "GATEWAY"
+        ]
+      },
+      "roleTypesConfigs": {
+        "OOZIE": {
+          "OOZIE_SERVER": {
+            "oozie_plugins_list": "org.apache.oozie.service.ZKLocksService,org.apache.oozie.service.ZKXLogStreamingService,org.apache.oozie.service.ZKJobsConcurrencyService,org.apache.oozie.service.ZKUUIDService"
+          }
+        },
+        "HIVE": {
+          "HIVESERVER2": {
+            "hiverserver2_load_balancer": "{{ cloudera_director_private_ip }}:10000"
+          }
+        }
+      }
+    },
+    "masters": {
+      "name": "{{ aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_template_name }}",
+      "virtualInstances":
+       [
+        {% for x in range(aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_nodes_number) %}
+          {
+            "id": "{{ ((x + 40) | pow(3)) | to_uuid }}",
+            "template": {
+              "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_template_name }}",
+              "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_ec2_type }}",
+              "image":            "{{ aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_ami_name }}",
+              "rackId":           "/default",
+              "bootstrapScripts": [],
+              "config": {
+                "ebsVolumeCount":       "0",
+                "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+                "ebsOptimized":         "false",
+                "enableEbsEncryption":  "false",
+                "rootVolumeType":       "gp2",
+                "instanceNamePrefix":   "{{ aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_template_name }}",
+                "ebsVolumeSizeGiB":     "500",
+                "rootVolumeSizeGB":     "50",
+                "useSpotInstances":     "false",
+                "ebsVolumeType":        "st1",
+                "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}"
+              },
+              "tags":                     {},
+              "normalizeInstance":        true,
+              "sshHostKeyRetrievalType":  "NONE"
+            }
+          }
+          {% if not loop.last %},{% endif %}
+        {% endfor %}
+        ],
+      "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_nodes_number }},
+      "serviceTypeToRoleTypes": {
+        "HUE": [
+          "HUE_LOAD_BALANCER"
+        ],
+        "ZOOKEEPER": [
+          "SERVER"
+        ],
+        "YARN": [
+          "JOBHISTORY"
+        ],
+        "SPARK_ON_YARN": [
+          "SPARK_YARN_HISTORY_SERVER"
+        ]
+      },
+      "roleTypesConfigs": {}
+    },
+    "workers": {
+      "name": "{{ aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_template_name }}",
+      "virtualInstances":
+      [
+        {% for x in range(aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_nodes_number) %}
+          {
+            "id": "{{ ((x + 50) | pow(3)) | to_uuid }}",
+            "template": {
+              "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_template_name }}",
+              "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_ec2_type }}",
+              "image":            "{{ aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_ami_name }}",
+              "rackId":           "/default",
+              "bootstrapScripts": [],
+              "config": {
+                "ebsVolumeCount":       "1",
+                "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+                "ebsOptimized":         "false",
+                "enableEbsEncryption":  "false",
+                "rootVolumeType":       "gp2",
+                "instanceNamePrefix":   "{{ aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_template_name }}",
+                "ebsVolumeSizeGiB":     "500",
+                "rootVolumeSizeGB":     "50",
+                "useSpotInstances":     "false",
+                "ebsVolumeType":        "st1",
+                "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}"
+              },
+              "tags":                     {},
+              "normalizeInstance":        true,
+              "sshHostKeyRetrievalType":  "NONE"
+            }
+          }
+          {% if not loop.last %},{% endif %}
+        {% endfor %}
+        ],
+      "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_nodes_number }},
+      "serviceTypeToRoleTypes": {
+        "HDFS": [
+          "DATANODE"
+        ],
+        "YARN": [
+          "NODEMANAGER"
+        ],
+        "SPARK_ON_YARN": [
+          "GATEWAY"
+        ]
+      },
+      "roleTypesConfigs": {
+        "HDFS": {
+          "DATANODE": {
+            "dfs_datanode_data_dir_perm": "700",
+            "dfs_datanode_http_port":     "1006",
+            "dfs_datanode_port":          "1004"
+          }
+        }
+      }
+    }
+  },
+  "externalDatabases": {},
+  "externalDatabaseTemplates": {
+      "HIVE": {
+          "name":               "hivetemplate",
+          "databaseServerName": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name  }}",
+          "databaseNamePrefix": "hive"
+      },
+      "HUE": {
+          "name":               "huetemplate",
+          "databaseServerName": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name  }}",
+          "databaseNamePrefix": "hue"
+      },
+      "OOZIE": {
+          "name":               "oozietemplate",
+          "databaseServerName": "{{ aws_properties.cluster_types[cluster_type].deployment.cloudera_database_server_name  }}",
+          "databaseNamePrefix": "oozie"
+      }
+  },
+  "parcelRepositories": [
+    "https://archive.cloudera.com/cdh5/parcels/5.15/",
+    "https://archive.cloudera.com/kafka/parcels/3.0/"
+  ],
+  "restartClusterOnUpdate":         false,
+  "redeployClientConfigsOnUpdate":  false,
+  "instancePostCreateScripts":      [],
+  "postCreateScripts":              [],
+  "preTerminateScripts":            [],
+  "migrations":                     [],
+  "administrationSettings": {
+    "autoRepairEnabled":                  false,
+    "autoRepairCooldownPeriodInSeconds":  1800
+  }
+}
