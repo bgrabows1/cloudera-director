@@ -56,7 +56,6 @@ aws_properties:
           cloudera_cluster_ec2_type:                      m4.xlarge
           cloudera_cluster_ami_name:                      '{{ cloudera_director_ami }}'
           cloudera_cluster_nodes_number:                  0
-
     ha:
       deployment:
         cloudera_manager_ami_name:                      '{{ cloudera_director_ami }}'
