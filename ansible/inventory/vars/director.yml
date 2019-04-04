@@ -56,3 +56,44 @@ aws_properties:
           cloudera_cluster_ec2_type:                      m4.xlarge
           cloudera_cluster_ami_name:                      '{{ cloudera_director_ami }}'
           cloudera_cluster_nodes_number:                  0
+
+    ha:
+      deployment:
+        cloudera_manager_ami_name:                      '{{ cloudera_director_ami }}'
+        cloudera_manager_ec2_type:                      m4.xlarge
+        cloudera_database_server_name:                  'cloudera-{{ env_name }}-db'
+        cloudera_database_server_engine:                MYSQL
+        cloudera_database_server_engine_version:        5.6.40
+        cloudera_database_server_allocated_storage:     20
+        cloudera_database_server_db_instance_class:     db.t2.micro
+      cluster:
+        masternode:
+          cloudera_cluster_template_name:               'master-node-1-{{ env_name }}'
+          cloudera_cluster_ec2_type:                    m4.xlarge
+          cloudera_cluster_ami_name:                    '{{ cloudera_director_ami }}'
+          cloudera_cluster_nodes_number:                1
+        masternode_2:
+          cloudera_cluster_template_name:               'master-node-2-{{ env_name }}'
+          cloudera_cluster_ec2_type:                    m4.xlarge
+          cloudera_cluster_ami_name:                    '{{ cloudera_director_ami }}'
+          cloudera_cluster_nodes_number:                2
+        hdfsmasternode_core:
+          cloudera_cluster_template_name:               'hdfs-master-core-{{ env_name }}'
+          cloudera_cluster_ec2_type:                    m4.xlarge
+          cloudera_cluster_ami_name:                    '{{ cloudera_director_ami }}'
+          cloudera_cluster_nodes_number:                2
+        hdfsmasternode_httpfs:
+          cloudera_cluster_template_name:               'hdfs-master-httpfs-{{ env_name }}'
+          cloudera_cluster_ec2_type:                    m4.xlarge
+          cloudera_cluster_ami_name:                    '{{ cloudera_director_ami }}'
+          cloudera_cluster_nodes_number:                1
+        datanode:
+          cloudera_cluster_template_name:               'data-node-{{ env_name }}'
+          cloudera_cluster_ec2_type:                    m4.xlarge
+          cloudera_cluster_ami_name:                    '{{ cloudera_director_ami }}'
+          cloudera_cluster_nodes_number:                3
+        edgenode:
+          cloudera_cluster_template_name:               'edge-node-{{ env_name }}'
+          cloudera_cluster_ec2_type:                    m4.xlarge
+          cloudera_cluster_ami_name:                    '{{ cloudera_director_ami }}'
+          cloudera_cluster_nodes_number:                0
