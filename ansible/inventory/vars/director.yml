@@ -34,7 +34,7 @@ aws_properties:
     basic:
       deployment:
         cloudera_manager_ami_name:                        '{{ cloudera_director_ami }}'
-        cloudera_manager_ec2_type:                        m4.xlarge
+        cloudera_manager_ec2_type:                        m4.large
         cloudera_database_server_name:                    'cloudera-{{ cloudera_director_environment_name }}-db'
         cloudera_database_server_engine:                  MYSQL
         cloudera_database_server_engine_version:          5.6.40
@@ -53,9 +53,9 @@ aws_properties:
           cloudera_cluster_nodes_number:                  3
         edgenode:
           cloudera_cluster_template_name:                 'edge-node-{{ cloudera_director_environment_name }}'
-          cloudera_cluster_ec2_type:                      m4.xlarge
+          cloudera_cluster_ec2_type:                      m4.large
           cloudera_cluster_ami_name:                      '{{ cloudera_director_ami }}'
-          cloudera_cluster_nodes_number:                  0
+          cloudera_cluster_nodes_number:                  1
     ha:
       deployment:
         cloudera_manager_ami_name:                      '{{ cloudera_director_ami }}'

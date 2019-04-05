@@ -142,6 +142,53 @@
       }
     }
   },
+  "edgenode": {
+    "name": "{{ aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_template_name }}",
+    "virtualInstances": [
+      {% for x in range(aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_nodes_number) %}
+        {
+          "id": "{{ ((x + 20) | pow(3)) | to_uuid }}",
+          "template": {
+            "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_template_name }}",
+            "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_ec2_type }}",
+            "image":            "{{ aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_ami_name }}",
+            "rackId":           "/default",
+            "bootstrapScripts": [],
+            "config": {
+              "ebsVolumeCount":       "0",
+              "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+              "ebsOptimized":         "false",
+              "enableEbsEncryption":  "false",
+              "rootVolumeType":       "gp2",
+              "instanceNamePrefix":   "{{ aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_template_name }}",
+              "ebsVolumeSizeGiB":     "500",
+              "rootVolumeSizeGB":     "50",
+              "useSpotInstances":     "false",
+              "ebsVolumeType":        "st1",
+              "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}"
+            },
+            "tags": {},
+            "normalizeInstance":        true,
+            "sshHostKeyRetrievalType":  "NONE"
+          }
+        }
+        {% if not loop.last %},{% endif %}
+      {% endfor %}
+      ],
+    "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_nodes_number }},
+    "serviceTypeToRoleTypes": {
+      "HDFS": [
+        "GATEWAY"
+      ],
+      "HIVE": [
+        "GATEWAY"
+      ],
+      "SPARK_ON_YARN": [
+        "GATEWAY"
+      ]
+    }
+  }
+},
   "externalDatabaseTemplates": {
       "HIVE": {
           "name":               "hivetemplate",
