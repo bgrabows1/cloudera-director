@@ -19,6 +19,26 @@
     headers:
       Cookie: oraclelicense=accept-securebackup-cookie
 
+- name: Install epel-release
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - epel-release
+
+- name: Install python-pip
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - python-pip
+
+- name: Install boto3
+  pip:
+    name:   "{{ item }}"
+  with_items:
+    - boto3
+
 - name: Download PyOpenSSL package
   get_url:
     url:  "{{ pyopenssl_url }}"
@@ -39,7 +59,7 @@
   rpm_key:
     key:    https://archive.cloudera.com/director/redhat/7/x86_64/director/RPM-GPG-KEY-cloudera
     state:  present
-    
+
 - name: Import Cloudera RPM repository
   yum_repository:
     name:         cloudera-director
@@ -48,7 +68,7 @@
 
 - name: Install Cloudera Director
   yum:
-    name:         
+    name:
       - cloudera-director-server
       - openssl
     state:        present
@@ -84,9 +104,9 @@
 
 - name: Convert PEM to PKCS12
   command: >
-    openssl pkcs12 -export 
-    -out {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.p12 
-    -in {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.crt 
+    openssl pkcs12 -export
+    -out {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.p12
+    -in {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.crt
     -inkey {{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.key
     -passout pass:{{ keystore_pass }}
     -name "{{ director_public_dns }}"
@@ -110,7 +130,7 @@
     keystore_create:  yes
     cert_path:        "{{ keystore_path }}/{{ director_public_dns }}/{{ director_public_dns }}.crt"
     cert_alias:       "{{ director_public_dns }}"
-    state:            present 
+    state:            present
 
 - name: Start Cloudera Director service.
   systemd:
