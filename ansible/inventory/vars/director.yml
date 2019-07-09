@@ -1,3 +1,4 @@
+cloudera_director_version:                              6.2.0
 cloudera_director_aws_region:                           eu-west-2
 cloudera_director_api_user:                             '{{ director_admin_username }}'
 cloudera_director_api_password:                         '{{ director_admin_password }}'

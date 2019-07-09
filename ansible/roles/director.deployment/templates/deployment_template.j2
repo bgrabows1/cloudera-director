@@ -73,7 +73,7 @@
   "name":                       "{{ cloudera_director_deployment_name }}",
   "password":                   "{{ cloudera_director_api_password }}",
   "postCreateScripts":          [],
-  "repository":                 "https://archive.cloudera.com/cm5/redhat/7/x86_64/cm/5.15.1",
+  "repository":                 "https://archive.cloudera.com/cm6/{{ cloudera_director_version }}/redhat7/yum",
   "tlsConfigurationProperties": {},
   "username":                   "{{ cloudera_director_api_user }}"
 }

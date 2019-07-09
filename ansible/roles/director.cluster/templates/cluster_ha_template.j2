@@ -1,7 +1,7 @@
 {
   "name": "{{ cloudera_director_cluster_name }}",
   "productVersions": {
-    "CDH": "5"
+    "CDH": "6"
   },
   "services": [
     "HDFS",
@@ -322,8 +322,8 @@
       }
   },
   "parcelRepositories": [
-    "https://archive.cloudera.com/cdh5/parcels/5.15/",
-    "https://archive.cloudera.com/kafka/parcels/3.0/"
+      "https://archive.cloudera.com/cdh6/6.2.0/parcels/",
+      "https://archive.cloudera.com/kafka/parcels/latest/"
   ],
   "restartClusterOnUpdate":         false,
   "redeployClientConfigsOnUpdate":  false,

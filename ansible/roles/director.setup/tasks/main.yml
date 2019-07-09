@@ -11,13 +11,13 @@
   vars:
     jsonVar: "{{ lookup('file', '{{ terraform_tf_state_path }}') | from_json }}"
 
-- name: Download JDK package
-  get_url:
-    url:      "{{ oracle_java_jdk_url }}"
-    dest:     /tmp/{{ oracle_java_jdk_url | basename }}
-    mode:     0644
-    headers:
-      Cookie: oraclelicense=accept-securebackup-cookie
+# - name: Download JDK package
+#   get_url:
+#     url:      "{{ oracle_java_jdk_url }}"
+#     dest:     /tmp/{{ oracle_java_jdk_url | basename }}
+#     mode:     0644
+#     headers:
+#       Cookie: oraclelicense=accept-securebackup-cookie
 
 - name: Install epel-release
   yum:
@@ -52,7 +52,7 @@
 
 - name: Install JDK package
   yum:
-    name:   /tmp/{{ oracle_java_jdk_url | basename }}
+    name:   java-1.8.0-openjdk
     state:  present
 
 - name: Import Cloudera RPM repository GPG key
