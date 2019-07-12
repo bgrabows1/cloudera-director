@@ -57,14 +57,14 @@
 
 - name: Import Cloudera RPM repository GPG key
   rpm_key:
-    key:    https://archive.cloudera.com/director/redhat/7/x86_64/director/RPM-GPG-KEY-cloudera
+    key:    https://archive.cloudera.com/director6/{{ cloudera_director_version }}/redhat7/RPM-GPG-KEY-cloudera
     state:  present
 
 - name: Import Cloudera RPM repository
   yum_repository:
     name:         cloudera-director
     description:  Cloudera Director YUM repo
-    baseurl:      http://archive.cloudera.com/director/redhat/7/x86_64/director/2/
+    baseurl:      https://archive.cloudera.com/director6/{{ cloudera_director_version }}/redhat7/
 
 - name: Install Cloudera Director
   yum:
