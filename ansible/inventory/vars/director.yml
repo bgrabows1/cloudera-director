@@ -1,4 +1,5 @@
 cloudera_director_version:                              6.2.0
+cdsw_version:                                           1.5.0
 cloudera_director_aws_region:                           eu-west-2
 cloudera_director_api_user:                             '{{ director_admin_username }}'
 cloudera_director_api_password:                         '{{ director_admin_password }}'
@@ -54,6 +55,16 @@ aws_properties:
           cloudera_cluster_nodes_number:                  3
         edgenode:
           cloudera_cluster_template_name:                 'edge-node-{{ cloudera_director_environment_name }}'
+          cloudera_cluster_ec2_type:                      m4.large
+          cloudera_cluster_ami_name:                      '{{ cloudera_director_ami }}'
+          cloudera_cluster_nodes_number:                  1
+        cdswmasternode:
+          cloudera_cluster_template_name:                 'cdsw-master-node-{{ env_name }}'
+          cloudera_cluster_ec2_type:                      m4.large
+          cloudera_cluster_ami_name:                      '{{ cloudera_director_ami }}'
+          cloudera_cluster_nodes_number:                  1
+        cdswworker:
+          cloudera_cluster_template_name:                 'cdsw-worker-node-{{ env_name }}'
           cloudera_cluster_ec2_type:                      m4.large
           cloudera_cluster_ami_name:                      '{{ cloudera_director_ami }}'
           cloudera_cluster_nodes_number:                  1

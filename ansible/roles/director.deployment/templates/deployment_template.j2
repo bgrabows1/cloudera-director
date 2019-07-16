@@ -8,7 +8,10 @@
       "SECURITY_REALM":         "{{ director_public_dns | upper }}"
     }
   },
-  "csds":                   [],
+  "csds": [
+          "https://archive.cloudera.com/cdsw1/{{ cdsw_version }}/csd/CLOUDERA_DATA_SCIENCE_WORKBENCH-CDH5-{{ cdsw_version }}.jar",
+          "https://archive.cloudera.com/spark2/csd/SPARK2_ON_YARN-2.3.0.cloudera4.jar"
+          ],
   "enableEnterpriseTrial":  true,
   "unlimitedJce":           true,
   "tlsEnabled":             true,
@@ -74,6 +77,7 @@
   "password":                   "{{ cloudera_director_api_password }}",
   "postCreateScripts":          [],
   "repository":                 "https://archive.cloudera.com/cm6/{{ cloudera_director_version }}/redhat7/yum",
+  "repositoryKeyUrl":           "https://archive.cloudera.com/cm6/{{ cloudera_director_version }}/redhat7/yum/RPM-GPG-KEY-cloudera",
   "tlsConfigurationProperties": {},
   "username":                   "{{ cloudera_director_api_user }}"
 }
