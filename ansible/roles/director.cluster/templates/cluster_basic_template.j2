@@ -1,7 +1,9 @@
 {
   "name": "{{ cloudera_director_cluster_name }}",
   "productVersions": {
-    "CDH": "6"
+    "CDH": "6",
+    "CDSW": "1.5.0",
+    "SPARK2": "2"
   },
   "services": [
     "HDFS",
@@ -10,7 +12,8 @@
     "OOZIE",
     "YARN",
     "ZOOKEEPER",
-    "SPARK_ON_YARN"
+    "SPARK2_ON_YARN",
+    "CDSW"
   ],
   "servicesConfigs": {
     "HDFS": {
@@ -57,6 +60,7 @@
         {% endfor %}
         ],
       "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_nodes_number }},
+      "count": {{ aws_properties.cluster_types[cluster_type].cluster.masternode.cloudera_cluster_nodes_number }},
       "serviceTypeToRoleTypes": {
         "HIVE": [
           "HIVEMETASTORE",
@@ -80,7 +84,7 @@
           "RESOURCEMANAGER",
           "JOBHISTORY"
         ],
-        "SPARK_ON_YARN": [
+        "SPARK2_ON_YARN": [
           "SPARK_YARN_HISTORY_SERVER"
         ]
       },
@@ -120,6 +124,7 @@
         {% endfor %}
         ],
       "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_nodes_number }},
+      "count": {{ aws_properties.cluster_types[cluster_type].cluster.datanode.cloudera_cluster_nodes_number }},
       "serviceTypeToRoleTypes": {
         "HDFS": [
           "DATANODE"
@@ -127,7 +132,7 @@
         "YARN": [
           "NODEMANAGER"
         ],
-        "SPARK_ON_YARN": [
+        "SPARK2_ON_YARN": [
           "GATEWAY"
         ]
       },
@@ -176,6 +181,7 @@
       {% endfor %}
       ],
     "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_nodes_number }},
+    "count": {{ aws_properties.cluster_types[cluster_type].cluster.edgenode.cloudera_cluster_nodes_number }},
     "serviceTypeToRoleTypes": {
       "HDFS": [
         "GATEWAY"
@@ -183,11 +189,152 @@
       "HIVE": [
         "GATEWAY"
       ],
-      "SPARK_ON_YARN": [
+      "SPARK2_ON_YARN": [
         "GATEWAY"
       ]
     }
-  }
+  },
+  "cdswmasters": {
+    "name": "{{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_template_name }}",
+    "virtualInstances": [
+      {% for x in range(aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_nodes_number) %}
+        {
+          "id": "{{ ((x + 30) | pow(3)) | to_uuid }}",
+          "template": {
+            "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_template_name }}",
+            "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_ec2_type }}",
+            "image":            "{{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_ami_name }}",
+            "rackId":           "/default",
+            "bootstrapScripts": [
+              """#!/bin/sh
+
+              # We remove any natively installed JDKs, as both Cloudera Manager and Cloudera Altus Director only support Oracle JDKs
+              yum remove --assumeyes *openjdk*
+
+              # Install JDK 1.8 required by Spark 2
+              rpm -ivh "https://archive.cloudera.com/director6/6.2.0/redhat7/RPMS/x86_64/oracle-j2sdk1.8-1.8.0+update141-1.x86_64.rpm"
+
+              device="/dev/xvdh"
+              mount="/var/lib/cdsw"
+
+              mkfs.ext4 -F -E lazy_itable_init=1 "$device" -m 0
+
+              if [ ! -e "$mount" ]; then
+                mkdir -p "$mount"
+              fi
+
+              mount -o defaults,noatime "$device" "$mount"
+
+              echo "$device $mount ext4 defaults,noatime 0 0" >> /etc/fstab
+
+              exit 0
+              """
+            ],
+            "config": {
+              "ebsVolumeCount":       "3",
+              "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+              "ebsOptimized":         "false",
+              "enableEbsEncryption":  "false",
+              "rootVolumeType":       "gp2",
+              "instanceNamePrefix":   "{{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_template_name }}",
+              "ebsVolumeSizeGiB":     "1000",
+              "rootVolumeSizeGB":     "100",
+              "useSpotInstances":     "false",
+              "ebsVolumeType":        "gp2",
+              "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}"
+            },
+            "tags":                     {},
+            "normalizeInstance":        true,
+            "sshHostKeyRetrievalType":  "NONE"
+          }
+        }
+        {% if not loop.last %},{% endif %}
+      {% endfor %}
+      ],
+    "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_nodes_number }},
+    "count":    {{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_nodes_number }},
+    "serviceTypeToRoleTypes": {
+      "HDFS": [
+        "GATEWAY"
+      ],
+      "YARN": [
+        "GATEWAY"
+      ],
+      "SPARK2_ON_YARN": [
+        "GATEWAY"
+      ],
+      "CDSW": [
+        "CDSW_MASTER",
+        "CDSW_APPLICATION",
+        "CDSW_DOCKER"
+      ]
+    },
+    "roleTypesConfigs": {
+      "CDSW": {
+        "CDSW_DOCKER": {
+          "cdsw.docker.devices.config": "/dev/xvdf /dev/xvdg" # related to the ebs configuration above
+          }
+        }
+      }
+    },
+    "cdswworkers": {
+      "name": "{{ aws_properties.cluster_types[cluster_type].cluster.cdswworker.cloudera_cluster_template_name }}",
+      "virtualInstances": [
+        {% for x in range(aws_properties.cluster_types[cluster_type].cluster.cdswworker.cloudera_cluster_nodes_number) %}
+          {
+            "id": "{{ ((x + 400) | pow(3)) | to_uuid }}",
+            "template": {
+              "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.cdswworker.cloudera_cluster_template_name }}",
+              "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.cdswworker.cloudera_cluster_ec2_type }}",
+              "image":            "{{ aws_properties.cluster_types[cluster_type].cluster.cdswworker.cloudera_cluster_ami_name }}",
+              "rackId":           "/default",
+              "bootstrapScripts": [],
+              "config": {
+                "ebsVolumeCount":       "2",
+                "subnetId":             "{{ aws_properties.global.cloudera_director_subnet_id }}",
+                "ebsOptimized":         "false",
+                "enableEbsEncryption":  "false",
+                "rootVolumeType":       "gp2",
+                "instanceNamePrefix":   "{{ aws_properties.cluster_types[cluster_type].cluster.cdswworker.cloudera_cluster_template_name }}",
+                "ebsVolumeSizeGiB":     "500",
+                "rootVolumeSizeGB":     "100",
+                "useSpotInstances":     "false",
+                "ebsVolumeType":        "gp2",
+                "securityGroupsIds":    "{{ aws_properties.global.cloudera_director_sg_id }}"
+              },
+              "tags":                     {},
+              "normalizeInstance":        true,
+              "sshHostKeyRetrievalType":  "NONE"
+            }
+          }
+          {% if not loop.last %},{% endif %}
+        {% endfor %}
+        ],
+      "minCount": {{ aws_properties.cluster_types[cluster_type].cluster.cdswworker.cloudera_cluster_nodes_number }},
+      "count": {{ aws_properties.cluster_types[cluster_type].cluster.cdswworker.cloudera_cluster_nodes_number }},
+      "serviceTypeToRoleTypes": {
+        "HDFS": [
+          "GATEWAY"
+        ],
+        "YARN": [
+          "GATEWAY"
+        ],
+        "CDSW": [
+          "CDSW_WORKER",
+          "CDSW_DOCKER"
+        ],
+        "SPARK2_ON_YARN": [
+          "GATEWAY"
+        ]
+      },
+      "roleTypesConfigs": {
+          "CDSW": {
+            "CDSW_DOCKER": {
+              "cdsw.docker.devices.config": "/dev/xvdf /dev/xvdg" # related to the ebs configuration above
+              }
+            }
+          }
+        }
 },
   "externalDatabaseTemplates": {
       "HIVE": {
