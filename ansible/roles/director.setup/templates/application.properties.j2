@@ -18,16 +18,16 @@
 #
 
 # On how many instances should Cloudera Director act in parallel during bootstrap
-# lp.bootstrap.parallelBatchSize: 20
+lp.bootstrap.parallelBatchSize: 20
 
 # How many times to try to install Cloudera Manager agents on new instances
-# lp.bootstrap.agents.maxNumberOfInstallAttempts: 50 # -1 is unlimited
+lp.bootstrap.agents.maxNumberOfInstallAttempts: 1000
 
 # How long to wait for the initial heartbeat of a Cloudera Manager agent
-# lp.bootstrap.agents.initialHeartbeatTimeoutInSeconds: 1800 # -1 is unlimited
+lp.bootstrap.agents.initialHeartbeatTimeoutInSeconds: 100
 
 # How long to wait until timing out a host install command
-# lp.bootstrap.agents.hostInstallTimeoutInSeconds: 900 # 15 minutes
+lp.bootstrap.agents.hostInstallTimeoutInSeconds: 900
 
 # Cloudera Director invokes the Cloudera Manager Host Install command to install the agents on
 # new instances. This command is invoked with the instance hostname when using autoTLS. By default,
@@ -520,4 +520,4 @@ lp.security.bootstrap.admin.roles: ADMIN,READONLY
 # lp.normalization.resizeRootPartitionRequired: true
 
 # Mounting all unmounted block device(s) to /data0, /data1, ...
-# lp.normalization.mountAllUnmountedDisksRequired: true
+# lp.normalization.mountAllUnmountedDisksRequired: false
