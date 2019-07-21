@@ -2,8 +2,7 @@
   "name": "{{ cloudera_director_cluster_name }}",
   "productVersions": {
     "CDH": "6",
-    "CDSW": "1.5.0",
-    "SPARK2": "2"
+    "CDSW": "1.5.0"
   },
   "services": [
     "HDFS",
@@ -12,7 +11,7 @@
     "OOZIE",
     "YARN",
     "ZOOKEEPER",
-    "SPARK2_ON_YARN",
+    "SPARK_ON_YARN",
     "CDSW"
   ],
   "servicesConfigs": {
@@ -84,7 +83,7 @@
           "RESOURCEMANAGER",
           "JOBHISTORY"
         ],
-        "SPARK2_ON_YARN": [
+        "SPARK_ON_YARN": [
           "SPARK_YARN_HISTORY_SERVER"
         ]
       },
@@ -132,7 +131,7 @@
         "YARN": [
           "NODEMANAGER"
         ],
-        "SPARK2_ON_YARN": [
+        "SPARK_ON_YARN": [
           "GATEWAY"
         ]
       },
@@ -189,7 +188,7 @@
       "HIVE": [
         "GATEWAY"
       ],
-      "SPARK2_ON_YARN": [
+      "SPARK_ON_YARN": [
         "GATEWAY"
       ]
     }
@@ -208,6 +207,13 @@
             "bootstrapScripts": [
               """#!/bin/sh
 
+              echo "net.bridge.bridge-nf-call-iptables=1" > /etc/sysctl.d/k8s.conf
+              echo "net.bridge.bridge-nf-call-ip6tables=1" >> /etc/sysctl.d/k8s.conf
+              echo "net.ipv4.ip_forward=1" >> /etc/sysctl.d/k8s.conf
+              echo "net.ipv4.conf.default.forwarding=1" >> /etc/sysctl.d/k8s.conf
+
+              sysctl -p
+
               # We remove any natively installed JDKs, as both Cloudera Manager and Cloudera Altus Director only support Oracle JDKs
               yum remove --assumeyes *openjdk*
 
@@ -217,7 +223,15 @@
               device="/dev/xvdh"
               mount="/var/lib/cdsw"
 
+              device_docker_0="/dev/xvdf"
+              device_docker_1="/dev/xvdg"
+
               mkfs.ext4 -F -E lazy_itable_init=1 "$device" -m 0
+              mkfs.ext4 -F -E lazy_itable_init=1 "$device_docker_0" -m 0
+              mkfs.ext4 -F -E lazy_itable_init=1 "$device_docker_1" -m 0
+
+              umount -d "$device_docker_0"
+              umount -d "$device_docker_1"
 
               if [ ! -e "$mount" ]; then
                 mkdir -p "$mount"
@@ -260,7 +274,7 @@
       "YARN": [
         "GATEWAY"
       ],
-      "SPARK2_ON_YARN": [
+      "SPARK_ON_YARN": [
         "GATEWAY"
       ],
       "CDSW": [
@@ -323,7 +337,7 @@
           "CDSW_WORKER",
           "CDSW_DOCKER"
         ],
-        "SPARK2_ON_YARN": [
+        "SPARK_ON_YARN": [
           "GATEWAY"
         ]
       },
@@ -356,7 +370,8 @@
   "externalDatabases": {},
   "parcelRepositories": [
     "https://archive.cloudera.com/cdh6/{{ cloudera_director_version }}/parcels/",
-    "https://archive.cloudera.com/kafka/parcels/latest/"
+    "https://archive.cloudera.com/kafka/parcels/latest/",
+    "https://archive.cloudera.com/cdsw1/{{ cdsw_version }}/parcels/"
   ],
   "restartClusterOnUpdate":           false,
   "redeployClientConfigsOnUpdate":    false,
