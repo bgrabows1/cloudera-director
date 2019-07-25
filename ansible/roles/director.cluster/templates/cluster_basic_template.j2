@@ -22,6 +22,9 @@
     },
     "ZOOKEEPER": {
       "enableSecurity": "true"
+    },
+    "CDSW": {
+      "cdsw.domain.config": "cdsw.{{ env_name }}.{{ env_domain }}" # The fully qualified domain name for the CDSW host
     }
   },
   "virtualInstanceGroups": {
@@ -198,7 +201,7 @@
     "virtualInstances": [
       {% for x in range(aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_nodes_number) %}
         {
-          "id": "{{ ((x + 30) | pow(3)) | to_uuid }}",
+          "id": "{{ ((x + 300) | pow(3)) | to_uuid }}",
           "template": {
             "name":             "{{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_template_name }}",
             "type":             "{{ aws_properties.cluster_types[cluster_type].cluster.cdswmasternode.cloudera_cluster_ec2_type }}",
@@ -223,15 +226,8 @@
               device="/dev/xvdh"
               mount="/var/lib/cdsw"
 
-              device_docker_0="/dev/xvdf"
-              device_docker_1="/dev/xvdg"
-
               mkfs.ext4 -F -E lazy_itable_init=1 "$device" -m 0
-              mkfs.ext4 -F -E lazy_itable_init=1 "$device_docker_0" -m 0
-              mkfs.ext4 -F -E lazy_itable_init=1 "$device_docker_1" -m 0
 
-              umount -d "$device_docker_0"
-              umount -d "$device_docker_1"
 
               if [ ! -e "$mount" ]; then
                 mkdir -p "$mount"
@@ -375,7 +371,23 @@
   ],
   "restartClusterOnUpdate":           false,
   "redeployClientConfigsOnUpdate":    false,
-  "instancePostCreateScripts":        [],
+  "instancePostCreateScripts":        [
+      """#!/bin/sh
+    find_cdsw=$(grep -i /var/lib/cdsw /etc/fstab)
+
+    if [ "$?" == "0" ]
+    then
+      umount /dev/xvdf
+      umount /dev/xvdg
+
+      sed -i '/.*\/data0\s.*/d' /etc/fstab
+      sed -i '/.*\/data1\s.*/d' /etc/fstab
+
+      touch /tmp/done_ebs
+    fi
+    exit 0
+    """
+  ],
   "postCreateScripts":                [],
   "preTerminateScripts":              [],
   "migrations":                       [],
