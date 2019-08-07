@@ -1,0 +1,25 @@
+
+- name: Install Python PIP
+  yum:
+    name: python-pip
+    state: latest
+    update_cache: yes
+
+- name: Install CM Python API Client
+  pip:
+    name: cm-api
+
+- name: Get Cloudera Manager API version
+  uri:
+    url: http://{{ scm_hostname }}:{{ scm_port }}/api/version
+    method: GET
+    status_code: 200
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: result
+
+- set_fact: cm_api_url="http://{{ hostvars[scm_hostname]['inventory_hostname'] }}:{{ scm_port }}/api/{{ result.content }}"
+
+- debug: var=cm_api_url
