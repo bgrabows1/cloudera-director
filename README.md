@@ -17,7 +17,7 @@ To run Cloudera Director installation process.
 ~~~bash
 ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws \
 -i $(cd ../terraform/aws && terraform output director_public_ip),  \
--e "cloudera_director_env_private_key=$(sed -E 's/$/\\\\n/g' ~/.ssh/id_rsa.cloudera.aws)" \
+-e "cloudera_director_env_private_key=$(echo -n $(sed -e '{:q;N;s/\n/\\\\n/g;t q}' ~/.ssh/id_rsa.cloudera.aws))" \
 -e "aws_access_key=<your aws access key>" \
 -e "aws_secret_key=<your aws secret key" \
 --vault-password-file=~/.ansible-vault-key main.yml
@@ -27,7 +27,7 @@ To destroy AWS objects created above.
 ~~~bash
 ansible-playbook  -u centos  --private-key=~/.ssh/id_rsa.cloudera.aws \
 -i $(cd ../terraform/aws && terraform output director_public_ip),  \
--e "cloudera_director_env_private_key=$(sed -E 's/$/\\\\n/g' ~/.ssh/id_rsa.cloudera.aws)" \
+-e "cloudera_director_env_private_key=$(echo -n $(sed -e '{:q;N;s/\n/\\\\n/g;t q}' ~/.ssh/id_rsa.cloudera.aws))" \
 -e "aws_access_key=<your aws access key>" \
 -e "aws_secret_key=<your aws secret key" \
 --vault-password-file=~/.ansible-vault-key director-destroy.yml
